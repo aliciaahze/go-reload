@@ -1,3 +1,4 @@
-hello wonderful world (up, 2)
-MY LIFE (low, 2)
-MY LIFE (cap, 2)
+1A (hex)
+1010 (bin)
+FF (hex)
+11111111 (bin)

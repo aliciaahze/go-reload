@@ -39,7 +39,9 @@ func main() {
 			}
 		}
 
-		if marker != "(up)" && marker != "(low)" && marker != "(cap)" {
+		if marker != "(up)" && marker != "(low)" &&
+			marker != "(cap)" && marker != "(hex)" &&
+			marker != "(bin)" {
 			continue
 		}
 
@@ -58,6 +60,17 @@ func main() {
 				word := strings.ToLower(words[j])
 				if len(word) > 0 {
 					words[j] = strings.ToUpper(word[:1]) + word[1:]
+				}
+			case "(hex)":
+				value, err := strconv.ParseInt(words[j], 16, 64)
+				if err == nil {
+					words[j] = strconv.FormatInt(value, 10)
+				}
+
+			case "(bin)":
+				value, err := strconv.ParseInt(words[j], 2, 64)
+				if err == nil {
+					words[j] = strconv.FormatInt(value, 10)
 				}
 			}
 		}
