@@ -100,8 +100,8 @@ func main() {
 			}
 		}
 
-		lineText := fixApostrophes(strings.Join(words, " "))
-		lines[lineIndex] = fixPunctuation(lineText)
+		lineText := fixPunctuation(strings.Join(words, " "))
+		lines[lineIndex] = fixApostrophes(lineText)
 	}
 
 	result := strings.Join(lines, "\n")
