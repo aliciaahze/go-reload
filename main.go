@@ -23,64 +23,69 @@ func main() {
 		return
 	}
 
-	words := strings.Fields(string(content))
+	lines := strings.Split(strings.ReplaceAll(string(content), "\r\n", "\n"), "\n")
 
-	for i := 0; i < len(words); i++ {
-		marker := words[i]
-		count := 1
-		removeCount := 1
+	for lineIndex, line := range lines {
+		words := strings.Fields(line)
 
-		if (marker == "(up," || marker == "(low," || marker == "(cap,") &&
-			i+1 < len(words) {
-			n, err := strconv.Atoi(strings.TrimSuffix(words[i+1], ")"))
-			if err == nil && n > 0 {
-				marker = strings.TrimSuffix(marker, ",") + ")"
-				count = n
-				removeCount = 2
-			}
-		}
+		for i := 0; i < len(words); i++ {
+			marker := words[i]
+			count := 1
+			removeCount := 1
 
-		if marker != "(up)" && marker != "(low)" &&
-			marker != "(cap)" && marker != "(hex)" &&
-			marker != "(bin)" {
-			continue
-		}
-
-		start := i - count
-		if start < 0 {
-			start = 0
-		}
-
-		for j := start; j < i; j++ {
-			switch marker {
-			case "(up)":
-				words[j] = strings.ToUpper(words[j])
-			case "(low)":
-				words[j] = strings.ToLower(words[j])
-			case "(cap)":
-				word := strings.ToLower(words[j])
-				if len(word) > 0 {
-					words[j] = strings.ToUpper(word[:1]) + word[1:]
-				}
-			case "(hex)":
-				value, err := strconv.ParseInt(words[j], 16, 64)
-				if err == nil {
-					words[j] = strconv.FormatInt(value, 10)
-				}
-
-			case "(bin)":
-				value, err := strconv.ParseInt(words[j], 2, 64)
-				if err == nil {
-					words[j] = strconv.FormatInt(value, 10)
+			if (marker == "(up," || marker == "(low," || marker == "(cap,") &&
+				i+1 < len(words) {
+				n, err := strconv.Atoi(strings.TrimSuffix(words[i+1], ")"))
+				if err == nil && n > 0 {
+					marker = strings.TrimSuffix(marker, ",") + ")"
+					count = n
+					removeCount = 2
 				}
 			}
+
+			if marker != "(up)" && marker != "(low)" &&
+				marker != "(cap)" && marker != "(hex)" &&
+				marker != "(bin)" {
+				continue
+			}
+
+			start := i - count
+			if start < 0 {
+				start = 0
+			}
+
+			for j := start; j < i; j++ {
+				switch marker {
+				case "(up)":
+					words[j] = strings.ToUpper(words[j])
+				case "(low)":
+					words[j] = strings.ToLower(words[j])
+				case "(cap)":
+					word := strings.ToLower(words[j])
+					if len(word) > 0 {
+						words[j] = strings.ToUpper(word[:1]) + word[1:]
+					}
+				case "(hex)":
+					value, err := strconv.ParseInt(words[j], 16, 64)
+					if err == nil {
+						words[j] = strconv.FormatInt(value, 10)
+					}
+				case "(bin)":
+					value, err := strconv.ParseInt(words[j], 2, 64)
+					if err == nil {
+						words[j] = strconv.FormatInt(value, 10)
+					}
+				}
+			}
+
+			words = append(words[:i], words[i+removeCount:]...)
+			i--
 		}
 
-		words = append(words[:i], words[i+removeCount:]...)
-		i--
+		lines[lineIndex] = fixPunctuation(strings.Join(words, " "))
 	}
 
-	result := fixPunctuation(strings.Join(words, " "))
+	result := strings.Join(lines, "\n")
 
 	err = os.WriteFile(outputFile, []byte(result), 0644)
 	if err != nil {
