@@ -82,7 +82,26 @@ func main() {
 			i--
 		}
 
-		lines[lineIndex] = fixPunctuation(strings.Join(words, " "))
+		for i := 0; i+1 < len(words); i++ {
+			if strings.EqualFold(words[i], "a") {
+				nextWord := strings.TrimLeft(words[i+1], ".,!?;:")
+
+				if len(nextWord) > 0 {
+					firstLetter := strings.ToLower(nextWord[:1])
+
+					if strings.Contains("aeiouh", firstLetter) {
+						if words[i] == "A" {
+							words[i] = "An"
+						} else {
+							words[i] = "an"
+						}
+					}
+				}
+			}
+		}
+
+		lineText := fixApostrophes(strings.Join(words, " "))
+		lines[lineIndex] = fixPunctuation(lineText)
 	}
 
 	result := strings.Join(lines, "\n")
@@ -130,4 +149,53 @@ func fixPunctuation(text string) string {
 	}
 
 	return strings.TrimSpace(string(output))
+}
+
+func fixApostrophes(text string) string {
+	chars := []rune(text)
+
+	for i := 0; i < len(chars); i++ {
+		opening := chars[i]
+		var closing rune
+
+		switch opening {
+		case '\'':
+			closing = '\''
+		case '‘':
+			closing = '’'
+		default:
+			continue
+		}
+
+		for j := i + 1; j < len(chars); j++ {
+			if chars[j] == closing || (opening == '‘' && chars[j] == '‘') {
+				start := i + 1
+				for start < j && unicode.IsSpace(chars[start]) {
+					start++
+				}
+
+				end := j
+				for end > start && unicode.IsSpace(chars[end-1]) {
+					end--
+				}
+
+				fixed := make([]rune, 0, len(chars))
+				fixed = append(fixed, chars[:i+1]...)
+				fixed = append(fixed, chars[start:end]...)
+
+				if opening == '‘' {
+					fixed = append(fixed, '’')
+				} else {
+					fixed = append(fixed, closing)
+				}
+
+				fixed = append(fixed, chars[j+1:]...)
+				chars = fixed
+				i = i + 1 + (end - start)
+				break
+			}
+		}
+	}
+
+	return string(chars)
 }
