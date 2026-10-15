@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -21,29 +22,47 @@ func main() {
 		return
 	}
 
-	text := string(content)
-	words := strings.Fields(text)
+	words := strings.Fields(string(content))
 
 	for i := 0; i < len(words); i++ {
-		if i == 0 {
-			continue
-		}
+		marker := words[i]
+		count := 1
+		removeCount := 1
 
-		switch words[i] {
-		case "(up)":
-			words[i-1] = strings.ToUpper(words[i-1])
-		case "(low)":
-			words[i-1] = strings.ToLower(words[i-1])
-		case "(cap)":
-			word := strings.ToLower(words[i-1])
-			if len(word) > 0 {
-				words[i-1] = strings.ToUpper(word[:1]) + word[1:]
+		if (marker == "(up," || marker == "(low," || marker == "(cap,") &&
+			i+1 < len(words) {
+			n, err := strconv.Atoi(strings.TrimSuffix(words[i+1], ")"))
+			if err == nil && n > 0 {
+				marker = strings.TrimSuffix(marker, ",") + ")"
+				count = n
+				removeCount = 2
 			}
-		default:
+		}
+
+		if marker != "(up)" && marker != "(low)" && marker != "(cap)" {
 			continue
 		}
 
-		words = append(words[:i], words[i+1:]...)
+		start := i - count
+		if start < 0 {
+			start = 0
+		}
+
+		for j := start; j < i; j++ {
+			switch marker {
+			case "(up)":
+				words[j] = strings.ToUpper(words[j])
+			case "(low)":
+				words[j] = strings.ToLower(words[j])
+			case "(cap)":
+				word := strings.ToLower(words[j])
+				if len(word) > 0 {
+					words[j] = strings.ToUpper(word[:1]) + word[1:]
+				}
+			}
+		}
+
+		words = append(words[:i], words[i+removeCount:]...)
 		i--
 	}
 

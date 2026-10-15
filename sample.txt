@@ -1,1 +1,3 @@
-HELLO (low) WORLD (cap) coucou (up)
+hello wonderful world (up, 2)
+MY LIFE (low, 2)
+MY LIFE (cap, 2)
