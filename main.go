@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 func main() {
@@ -79,7 +80,7 @@ func main() {
 		i--
 	}
 
-	result := strings.Join(words, " ")
+	result := fixPunctuation(strings.Join(words, " "))
 
 	err = os.WriteFile(outputFile, []byte(result), 0644)
 	if err != nil {
@@ -88,4 +89,40 @@ func main() {
 	}
 
 	fmt.Println("File transformed successfully!")
+}
+
+func fixPunctuation(text string) string {
+	punctuation := ".,!?;:"
+	input := []rune(strings.TrimSpace(text))
+	output := []rune{}
+
+	for i, char := range input {
+		if unicode.IsSpace(char) {
+			if len(output) > 0 &&
+				!unicode.IsSpace(output[len(output)-1]) {
+				output = append(output, ' ')
+			}
+			continue
+		}
+
+		if strings.ContainsRune(punctuation, char) {
+			for len(output) > 0 &&
+				unicode.IsSpace(output[len(output)-1]) {
+				output = output[:len(output)-1]
+			}
+
+			output = append(output, char)
+
+			if i+1 < len(input) &&
+				!unicode.IsSpace(input[i+1]) &&
+				!strings.ContainsRune(punctuation, input[i+1]) {
+				output = append(output, ' ')
+			}
+			continue
+		}
+
+		output = append(output, char)
+	}
+
+	return strings.TrimSpace(string(output))
 }
